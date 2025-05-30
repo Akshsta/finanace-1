@@ -127,7 +127,7 @@ resource "aws_subnet" "finance_subnet_2" {
 }
 
 resource "aws_db_subnet_group" "finance_subnet_group" {
-  name       = "finance-subnet-group"
+  name       = "finance-subnet-group-1"
   subnet_ids = [
     aws_subnet.finance_subnet_1.id,
     aws_subnet.finance_subnet_2.id

@@ -1,0 +1,31 @@
+---
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Install required packages
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+
+- name: Enable Docker service
+  systemd:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: Copy Docker Compose file
+  copy:
+    src: docker-compose.yml
+    dest: /home/ubuntu/banking-finance-Me/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+
+- name: Start Docker container using Docker Compose
+  shell: docker-compose up -d
+  args:
+    chdir: /home/ubuntu/banking-finance-Me
+

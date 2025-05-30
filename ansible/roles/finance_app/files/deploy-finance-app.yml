@@ -1,0 +1,7 @@
+---
+- name: Deploy FinanceMe Spring Boot App
+  hosts: finance-app
+  become: yes
+  roles:
+    - finance_app
+

@@ -68,3 +68,63 @@ ansible/hosts.ini
 # Docker
 *.pid
 *.tar
+# Java / Maven
+target/
+*.jar
+*.war
+*.ear
+*.class
+*.log
+
+# Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Spring Boot specific
+spring-boot-devtools.properties
+
+# IntelliJ / Eclipse / VSCode
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.vscode/
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# Ansible
+*.retry
+*.log
+
+# Terraform
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+*.tfvars
+*.backup
+
+# Docker
+*.pid
+*.tar
+*.bak
+
+# Credentials or secrets
+*.env
+.env
+.env.*
+
+# GitHub token cache
+.git-credentials
+
+# Logs & debug
+logs/
+*.out
+nohup.out
+

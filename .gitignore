@@ -128,3 +128,9 @@ logs/
 *.out
 nohup.out
 
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup
+.terraform/
+terraform.tfstate
+terraform.tfstate.backup

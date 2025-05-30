@@ -2,3 +2,13 @@ finance-me.jar
 *.log
 *.class
 *.iml
+# Ignore the jar file (build artifact)
+finance-me.jar
+
+# Ignore any temporary or backup files (optional)
+*.log
+*.tmp
+*.bak
+
+# Ignore Ansible host files or secrets if any (if hosts.ini contains secrets)
+hosts.ini

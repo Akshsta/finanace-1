@@ -118,7 +118,7 @@ resource "aws_db_subnet_group" "finance1_subnet_group" {
 # RDS MySQL Instance (only if create_rds = true)
 resource "aws_db_instance" "finance1_rds" {
   count                   = var.create_rds ? 1 : 0
-  identifier              = "financeme1-db"
+  identifier              = "financeme1-db-${random_pet.name.id}"  # unique suffix
   allocated_storage       = 20
   engine                  = "mysql"
   engine_version          = "8.0.35"

@@ -87,10 +87,10 @@ resource "aws_instance" "finance_ec2" {
 
 # Output EC2 public IP
 output "finance_ec2_public_ip" {
-  value       = aws_instance.finance_ec2[0].public_ip
   description = "Public IP of the EC2 instance"
-  condition   = var.create_ec2
+  value       = length(aws_instance.finance_ec2) > 0 ? aws_instance.finance_ec2[0].public_ip : "44.201.199.111"
 }
+
 
 # RDS Subnet Group
 resource "aws_db_subnet_group" "finance1_subnet_group" {

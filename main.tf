@@ -2,6 +2,19 @@ provider "aws" {
   region = "us-east-1"
 }
 
+# Variables for toggling resources
+variable "create_ec2" {
+  description = "Set to true to create EC2 instance"
+  type        = bool
+  default     = true
+}
+
+variable "create_rds" {
+  description = "Set to true to create RDS instance"
+  type        = bool
+  default     = true
+}
+
 # Use default VPC
 data "aws_vpc" "default" {
   default = true
@@ -15,7 +28,7 @@ data "aws_subnets" "default" {
   }
 }
 
-# Security group in default VPC
+# Security group for EC2 and RDS
 resource "aws_security_group" "finance1_sg" {
   name        = "finance1-sg"
   description = "Allow SSH, HTTP, and MySQL"
@@ -25,21 +38,21 @@ resource "aws_security_group" "finance1_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # SSH
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # App
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # MySQL
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -50,8 +63,9 @@ resource "aws_security_group" "finance1_sg" {
   }
 }
 
-# EC2 Instance in default subnet
+# EC2 Instance (only if create_ec2 = true)
 resource "aws_instance" "finance_ec2" {
+  count                       = var.create_ec2 ? 1 : 0
   ami                         = "ami-084568db4383264d4"
   instance_type               = "t2.micro"
   subnet_id                   = data.aws_subnets.default.ids[0]
@@ -71,8 +85,16 @@ resource "aws_instance" "finance_ec2" {
               EOF
 }
 
+# Output EC2 public IP
+output "finance_ec2_public_ip" {
+  value       = aws_instance.finance_ec2[0].public_ip
+  description = "Public IP of the EC2 instance"
+  condition   = var.create_ec2
+}
+
 # RDS Subnet Group
 resource "aws_db_subnet_group" "finance1_subnet_group" {
+  count      = var.create_rds ? 1 : 0
   name       = "finance1-subnet-group"
   subnet_ids = data.aws_subnets.default.ids
 
@@ -81,8 +103,9 @@ resource "aws_db_subnet_group" "finance1_subnet_group" {
   }
 }
 
-# RDS MySQL Instance
+# RDS MySQL Instance (only if create_rds = true)
 resource "aws_db_instance" "finance1_rds" {
+  count                   = var.create_rds ? 1 : 0
   identifier              = "financeme1-db"
   allocated_storage       = 20
   engine                  = "mysql"
@@ -90,7 +113,7 @@ resource "aws_db_instance" "finance1_rds" {
   instance_class          = "db.t3.micro"
   username                = "admin"
   password                = "Akshata1999"
-  db_subnet_group_name    = aws_db_subnet_group.finance1_subnet_group.name
+  db_subnet_group_name    = aws_db_subnet_group.finance1_subnet_group[0].name
   vpc_security_group_ids  = [aws_security_group.finance1_sg.id]
   skip_final_snapshot     = true
   publicly_accessible     = true

@@ -51,7 +51,7 @@ resource "aws_security_group" "finance1_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["44.201.199.111/0"]
+    cidr_blocks = ["44.201.199.111/32"]
   }
 
   ingress {

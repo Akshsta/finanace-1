@@ -31,3 +31,40 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Maven
+target/
+.mvn/
+mvnw
+mvnw.cmd
+
+# IntelliJ / Eclipse / VS Code
+*.iml
+.idea/
+*.class
+*.log
+*.swp
+*.bak
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# JAR files
+*.jar
+
+# Terraform state files
+terraform.tfstate
+terraform.tfstate.backup
+*.tfstate
+
+# Ansible inventory with potential secrets (optional)
+ansible/hosts.ini
+
+# Environment files
+.env
+*.env
+
+# Docker
+*.pid
+*.tar

@@ -7,6 +7,9 @@ terraform {
   }
 }
 
+provider "aws" {
+  region = "us-east-1"
+}
 
 # Create a VPC
 resource "aws_vpc" "finance1_vpc" {
@@ -19,12 +22,12 @@ resource "aws_vpc" "finance1_vpc" {
   }
 }
 
-# Create an internet gateway
-resource "aws1_internet_gateway" "finance1_igw" {
+# Internet Gateway
+resource "aws_internet_gateway" "finance1_igw" {
   vpc_id = aws_vpc.finance1_vpc.id
 }
 
-# Create a subnet
+# Subnet
 resource "aws_subnet" "finance1_subnet" {
   vpc_id                  = aws_vpc.finance1_vpc.id
   cidr_block              = "10.0.1.0/24"
@@ -32,23 +35,23 @@ resource "aws_subnet" "finance1_subnet" {
   map_public_ip_on_launch = true
 }
 
-# Create a route table and route
-resource "aws1_route_table" "finance1_route_table" {
-  vpc_id = aws1_vpc.finance1_vpc.id
+# Route Table and Route
+resource "aws_route_table" "finance1_route_table" {
+  vpc_id = aws_vpc.finance1_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws1_internet_gateway.finance1_igw.id
+    gateway_id = aws_internet_gateway.finance1_igw.id
   }
 }
 
 resource "aws_route_table_association" "finance1_rta" {
-  subnet_id      = aws1_subnet.finance1_subnet.id
-  route_table_id = aws1_route_table.finance1_route_table.id
+  subnet_id      = aws_subnet.finance1_subnet.id
+  route_table_id = aws_route_table.finance1_route_table.id
 }
 
-# Create a security group
-resource "aws1_security_group" "finance1_sg" {
+# Security Group
+resource "aws_security_group" "finance1_sg" {
   name        = "finance1-sg"
   description = "Allow SSH, HTTP, and MySQL"
   vpc_id      = aws_vpc.finance1_vpc.id
@@ -57,21 +60,21 @@ resource "aws1_security_group" "finance1_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # SSH
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # App access
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # MySQL
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -82,42 +85,28 @@ resource "aws1_security_group" "finance1_sg" {
   }
 }
 
-# Create EC2 instance
+# EC2 Instance
 resource "aws_instance" "finance_ec2" {
-  ami                         = "ami-084568db4383264d4" 
+  ami                         = "ami-084568db4383264d4"
   instance_type               = "t2.large"
-  subnet_id                   = aws1_subnet.finance1_subnet.id
-  vpc_security_group_ids      = [aws1_security_group.finance1_sg.id]
+  subnet_id                   = aws_subnet.finance1_subnet.id
+  vpc_security_group_ids      = [aws_security_group.finance1_sg.id]
   associate_public_ip_address = true
-  key_name                    = "project" 
+  key_name                    = "project"
 
   tags = {
     Name = "banking_project"
   }
 
   user_data = <<-EOF
+              #!/bin/bash
               sudo apt update -y
               sudo apt install docker.io -y
               sudo systemctl enable docker
               EOF
 }
 
-resource "aws_db_instance" "finance1_rds" {
-  identifier              = "financeme1-db"
-  allocated_storage       = 20
-  engine                  = "mysql"
-  engine_version          = "8.0.35" 
-  instance_class          = "db.t3.medium"
-  username                = "admin"
-  password                = "Akshata1999" 
-  db_subnet_group_name    = aws1_db_subnet_group.finance1_subnet_group.name
-  vpc_security_group_ids  = [aws1_security_group.finance1_sg.id]
-  skip_final_snapshot     = true
-  publicly_accessible     = true
-}
-
-
-
+# Additional Subnets
 resource "aws_subnet" "finance1_subnet_1" {
   vpc_id                  = aws_vpc.finance1_vpc.id
   cidr_block              = "10.0.100.0/24"
@@ -132,6 +121,7 @@ resource "aws_subnet" "finance1_subnet_2" {
   map_public_ip_on_launch = true
 }
 
+# DB Subnet Group
 resource "aws_db_subnet_group" "finance1_subnet1_group" {
   name       = "finance1-subnet-group-1"
   subnet_ids = [
@@ -144,4 +134,17 @@ resource "aws_db_subnet_group" "finance1_subnet1_group" {
   }
 }
 
-
+# RDS Instance
+resource "aws_db_instance" "finance1_rds" {
+  identifier              = "financeme1-db"
+  allocated_storage       = 20
+  engine                  = "mysql"
+  engine_version          = "8.0.35"
+  instance_class          = "db.t3.medium"
+  username                = "admin"
+  password                = "Akshata1999"
+  db_subnet_group_name    = aws_db_subnet_group.finance1_subnet1_group.name
+  vpc_security_group_ids  = [aws_security_group.finance1_sg.id]
+  skip_final_snapshot     = true
+  publicly_accessible     = true
+}

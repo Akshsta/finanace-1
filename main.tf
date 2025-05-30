@@ -1,80 +1,45 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
-
 provider "aws" {
   region = "us-east-1"
 }
 
-# Create a VPC
-resource "aws_vpc" "finance1_vpc" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
+# Use default VPC
+data "aws_vpc" "default" {
+  default = true
+}
 
-  tags = {
-    Name = "finance1-vpc"
+# Use existing subnets in default VPC
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
-# Internet Gateway
-resource "aws_internet_gateway" "finance1_igw" {
-  vpc_id = aws_vpc.finance1_vpc.id
-}
-
-# Subnet
-resource "aws_subnet" "finance1_subnet" {
-  vpc_id                  = aws_vpc.finance1_vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-}
-
-# Route Table and Route
-resource "aws_route_table" "finance1_route_table" {
-  vpc_id = aws_vpc.finance1_vpc.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.finance1_igw.id
-  }
-}
-
-resource "aws_route_table_association" "finance1_rta" {
-  subnet_id      = aws_subnet.finance1_subnet.id
-  route_table_id = aws_route_table.finance1_route_table.id
-}
-
-# Security Group
+# Security group in default VPC
 resource "aws_security_group" "finance1_sg" {
   name        = "finance1-sg"
   description = "Allow SSH, HTTP, and MySQL"
-  vpc_id      = aws_vpc.finance1_vpc.id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # SSH
   }
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # App
   }
 
   ingress {
     from_port   = 3306
     to_port     = 3306
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["0.0.0.0/0"] # MySQL
   }
 
   egress {
@@ -85,11 +50,11 @@ resource "aws_security_group" "finance1_sg" {
   }
 }
 
-# EC2 Instance
+# EC2 Instance in default subnet
 resource "aws_instance" "finance_ec2" {
   ami                         = "ami-084568db4383264d4"
-  instance_type               = "t2.large"
-  subnet_id                   = aws_subnet.finance1_subnet.id
+  instance_type               = "t2.micro"
+  subnet_id                   = data.aws_subnets.default.ids[0]
   vpc_security_group_ids      = [aws_security_group.finance1_sg.id]
   associate_public_ip_address = true
   key_name                    = "project"
@@ -106,44 +71,26 @@ resource "aws_instance" "finance_ec2" {
               EOF
 }
 
-# Additional Subnets
-resource "aws_subnet" "finance1_subnet_1" {
-  vpc_id                  = aws_vpc.finance1_vpc.id
-  cidr_block              = "10.0.100.0/24"
-  availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = true
-}
-
-resource "aws_subnet" "finance1_subnet_2" {
-  vpc_id                  = aws_vpc.finance1_vpc.id
-  cidr_block              = "10.0.2.0/24"
-  availability_zone       = "us-east-1b"
-  map_public_ip_on_launch = true
-}
-
-# DB Subnet Group
-resource "aws_db_subnet_group" "finance1_subnet1_group" {
-  name       = "finance1-subnet-group-1"
-  subnet_ids = [
-    aws_subnet.finance1_subnet_1.id,
-    aws_subnet.finance1_subnet_2.id
-  ]
+# RDS Subnet Group
+resource "aws_db_subnet_group" "finance1_subnet_group" {
+  name       = "finance1-subnet-group"
+  subnet_ids = data.aws_subnets.default.ids
 
   tags = {
     Name = "Finance1 DB subnet group"
   }
 }
 
-# RDS Instance
+# RDS MySQL Instance
 resource "aws_db_instance" "finance1_rds" {
   identifier              = "financeme1-db"
   allocated_storage       = 20
   engine                  = "mysql"
   engine_version          = "8.0.35"
-  instance_class          = "db.t3.medium"
+  instance_class          = "db.t3.micro"
   username                = "admin"
   password                = "Akshata1999"
-  db_subnet_group_name    = aws_db_subnet_group.finance1_subnet1_group.name
+  db_subnet_group_name    = aws_db_subnet_group.finance1_subnet_group.name
   vpc_security_group_ids  = [aws_security_group.finance1_sg.id]
   skip_final_snapshot     = true
   publicly_accessible     = true

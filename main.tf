@@ -97,7 +97,7 @@ resource "aws_instance" "finance_ec2" {
 }
 
 resource "aws_db_instance" "finance_rds" {
-  identifier              = "financeme-db"
+  identifier              = "financeme1-db"
   allocated_storage       = 20
   engine                  = "mysql"
   engine_version          = "8.0.35" 

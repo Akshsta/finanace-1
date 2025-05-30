@@ -115,6 +115,10 @@ resource "aws_db_subnet_group" "finance1_subnet_group" {
   }
 }
 
+resource "random_pet" "name" {
+  length = 2
+}
+
 # RDS MySQL Instance (only if create_rds = true)
 resource "aws_db_instance" "finance1_rds" {
   count                   = var.create_rds ? 1 : 0

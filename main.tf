@@ -14,7 +14,7 @@ resource "aws_vpc" "finance1_vpc" {
 }
 
 # Create an internet gateway
-resource "aws_internet_gateway" "finance1_igw" {
+resource "aws1_internet_gateway" "finance1_igw" {
   vpc_id = aws_vpc.finance1_vpc.id
 }
 
@@ -27,22 +27,22 @@ resource "aws_subnet" "finance1_subnet" {
 }
 
 # Create a route table and route
-resource "aws_route_table" "finance1_route_table" {
-  vpc_id = aws_vpc.finance1_vpc.id
+resource "aws1_route_table" "finance1_route_table" {
+  vpc_id = aws1_vpc.finance1_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.finance1_igw.id
+    gateway_id = aws1_internet_gateway.finance1_igw.id
   }
 }
 
 resource "aws_route_table_association" "finance1_rta" {
-  subnet_id      = aws_subnet.finance1_subnet.id
-  route_table_id = aws_route_table.finance1_route_table.id
+  subnet_id      = aws1_subnet.finance1_subnet.id
+  route_table_id = aws1_route_table.finance1_route_table.id
 }
 
 # Create a security group
-resource "aws_security_group" "finance1_sg" {
+resource "aws1_security_group" "finance1_sg" {
   name        = "finance1-sg"
   description = "Allow SSH, HTTP, and MySQL"
   vpc_id      = aws_vpc.finance1_vpc.id
@@ -80,8 +80,8 @@ resource "aws_security_group" "finance1_sg" {
 resource "aws_instance" "finance_ec2" {
   ami                         = "ami-084568db4383264d4" 
   instance_type               = "t2.large"
-  subnet_id                   = aws_subnet.finance1_subnet.id
-  vpc_security_group_ids      = [aws_security_group.finance1_sg.id]
+  subnet_id                   = aws1_subnet.finance1_subnet.id
+  vpc_security_group_ids      = [aws1_security_group.finance1_sg.id]
   associate_public_ip_address = true
   key_name                    = "project" 
 
@@ -104,8 +104,8 @@ resource "aws_db_instance" "finance1_rds" {
   instance_class          = "db.t3.medium"
   username                = "admin"
   password                = "Akshata1999" 
-  db_subnet_group_name    = aws_db_subnet_group.finance1_subnet_group.name
-  vpc_security_group_ids  = [aws_security_group.finance1_sg.id]
+  db_subnet_group_name    = aws1_db_subnet_group.finance1_subnet_group.name
+  vpc_security_group_ids  = [aws1_security_group.finance1_sg.id]
   skip_final_snapshot     = true
   publicly_accessible     = true
 }

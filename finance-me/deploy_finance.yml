@@ -1,6 +1,6 @@
 ---
 - name: Deploy FinanceMe Spring Boot App
-  hosts: ec2-finance
+  hosts: ec2_finance
   become: true
 
   vars:

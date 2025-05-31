@@ -1,13 +1,3 @@
-terraform {
-  backend "s3" {
-    bucket         = "finance-terraform-state-bucket"   # Replace with your S3 bucket
-    key            = "finance-me/terraform.tfstate"
-    region         = "us-east-1"
-    dynamodb_table = "terraform-lock"                   # For state locking (optional but recommended)
-  }
-}
-
-
 provider "aws" {
   region = "us-east-1"
 }
